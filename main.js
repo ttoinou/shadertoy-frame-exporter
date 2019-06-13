@@ -216,11 +216,12 @@ FrameExporter.prototype.createUi = function() {
     this.addClass(this.controls, 'sfe-controls');
     this.insertAfter(this.controls, this.player);
 
-    var n = 2;
+    var n = 1;
     this.widthInput = this.createInput('width', 'number', 1920*n);
     this.heightInput = this.createInput('height', 'number', 1080*n);
     this.fpsInput = this.createInput('fps', 'number', 50);
-    this.secondsInput = this.createInput('seconds', 'number', 30);
+    this.secondsInput = this.createInput('seconds', 'number',500);
+    this.startFrameInput = this.createInput('startFrame', 'number',0);
 
     var url = document.location.toString().split('/');
     this.prefixInput = this.createInput('prefix', 'text',url[url.length-1] + '_' );
@@ -248,7 +249,8 @@ FrameExporter.prototype.settingsChanged = function() {
         width: this.widthInput.value,
         height: this.heightInput.value,
         fps: this.fpsInput.value,
-        seconds: this.secondsInput.value
+        seconds: this.secondsInput.value,
+        startFrame: this.startFrameInput.value
     };
 
     if (this.preview && JSON.stringify(this.settings) != JSON.stringify(settings)) {
@@ -292,14 +294,21 @@ FrameExporter.prototype.createInput = function(name, type, value) {
    ========================================================================== */
 
 FrameExporter.prototype.saveFrame = function(canvas, done) {
+    //console.log(this.settings.startFrame,parseInt(this.settings.startFrame));
+    if(this.frameCounter.frameNumber < parseInt(this.settings.startFrame))
+    {
+        done();
+        return;
+    }
+
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(this.frameCounter.frameNumber, digits);
     var filename = this.prefix + frameString + '.jpg';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
-        setTimeout(done, 100);
-    },'image/jpeg',0.6);
+        setTimeout(done, 200);
+    },'image/jpeg',0.8);
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
