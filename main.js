@@ -221,7 +221,9 @@ FrameExporter.prototype.createUi = function() {
     this.heightInput = this.createInput('height', 'number', 1080*n);
     this.fpsInput = this.createInput('fps', 'number', 50);
     this.secondsInput = this.createInput('seconds', 'number', 30);
-    this.prefixInput = this.createInput('prefix', 'text', 'img');
+
+    var url = document.location.toString().split('/');
+    this.prefixInput = this.createInput('prefix', 'text',url[url.length-1] + '_' );
 
     var previewInput = this.createInput('preview', 'checkbox');
     previewInput.addEventListener('click', function() {
