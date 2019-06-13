@@ -216,10 +216,10 @@ FrameExporter.prototype.createUi = function() {
     this.addClass(this.controls, 'sfe-controls');
     this.insertAfter(this.controls, this.player);
 
-    this.widthInput = this.createInput('width', 'number', 500);
-    this.heightInput = this.createInput('height', 'number', 500);
-    this.fpsInput = this.createInput('fps', 'number', 30);
-    this.secondsInput = this.createInput('seconds', 'number', 1);
+    this.widthInput = this.createInput('width', 'number', 1920);
+    this.heightInput = this.createInput('height', 'number', 1080);
+    this.fpsInput = this.createInput('fps', 'number', 50);
+    this.secondsInput = this.createInput('seconds', 'number', 30);
     this.prefixInput = this.createInput('prefix', 'text', 'img');
 
     var previewInput = this.createInput('preview', 'checkbox');
