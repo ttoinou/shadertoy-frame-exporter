@@ -292,11 +292,11 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(this.frameCounter.frameNumber, digits);
-    var filename = this.prefix + frameString + '.png';
+    var filename = this.prefix + frameString + '.jpg';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
         setTimeout(done, 100);
-    });
+    },'image/jpeg',75);
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
