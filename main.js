@@ -301,9 +301,11 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
         return;
     }
 
+    var frameNumber = this.frameCounter.frameNumber;
+    
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
-    var frameString = this.pad(this.frameCounter.frameNumber, digits);
+    var frameString = this.pad(frameNumber, digits);
     var filename = this.prefix + frameString + '.jpg';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
