@@ -141,7 +141,7 @@ FrameExporter.prototype.render = function(original_render) {
         if (this.frameUpdated) {
 
             this.frameUpdated = false;
-            //console.log();
+            console.log(this.frameCounter.frameNumber/this.frameCounter.fps);
 
                 gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
                     pass.mInputs.forEach(function mInput(input){
