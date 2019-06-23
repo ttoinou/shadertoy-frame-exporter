@@ -254,10 +254,16 @@ FrameExporter.prototype.createUi = function() {
     }.bind(this));
 
     var button = document.createElement('button');
-    button.textContent = 'Save frames';
+    button.textContent = 'Go!';
     this.addClass(button, 'sfe-save');
     this.controls.appendChild(button);
     button.addEventListener('click', this.startRecording.bind(this));
+
+    var button = document.createElement('button');
+    button.textContent = 'Stop!';
+    this.addClass(button, 'sfe-save');
+    this.controls.appendChild(button);
+    button.addEventListener('click', this.stopRecording.bind(this));
 
     this.settingsChanged();
 };
