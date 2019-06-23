@@ -141,7 +141,8 @@ FrameExporter.prototype.render = function(original_render) {
         if (this.frameUpdated) {
 
             this.frameUpdated = false;
-            console.log(this.frameCounter.frameNumber/this.frameCounter.fps);
+            var ct = this.frameCounter.frameNumber/this.frameCounter.fps;
+            //console.log(ct);
 
                 gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
                     pass.mInputs.forEach(function mInput(input){
@@ -149,7 +150,8 @@ FrameExporter.prototype.render = function(original_render) {
                         if (input) {
                             //media = input.audio || input.video;
                             if (input.audio) {
-                                console.log(input.audio.currentTime);
+                                input.audio.currentTime = ct; 
+                                //console.log(input.audio.currentTime);
                                 //media.controls = true;
                                 //media.currentTime = value / 1000.0;
                             }
@@ -233,7 +235,7 @@ FrameExporter.prototype.createUi = function() {
     this.addClass(this.controls, 'sfe-controls');
     this.insertAfter(this.controls, this.player);
 
-    var n = 4;
+    var n = 2;
     this.widthInput = this.createInput('width', 'number', 1920*n);
     this.heightInput = this.createInput('height', 'number', 1080*n);
     this.fpsInput = this.createInput('fps', 'number', 50);
