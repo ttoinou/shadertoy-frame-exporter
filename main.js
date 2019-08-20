@@ -358,8 +358,8 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
     var filename = this.prefix + frameString + '.jpg';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
-        setTimeout(done, 160);
-    },'image/jpeg',0.82);
+        setTimeout(done, 300);
+    },'image/jpeg',0.96);
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
