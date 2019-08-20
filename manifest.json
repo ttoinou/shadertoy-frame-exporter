@@ -17,6 +17,7 @@
     ],
     "web_accessible_resources": [
         "main.js",
-        "lib/FileSaver-2.0.2.js"
+        "lib/FileSaver-2.0.2.js",
+        "lib/wavefile.umd.js"
     ]
 }
