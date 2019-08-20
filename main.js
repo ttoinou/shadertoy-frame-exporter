@@ -116,25 +116,30 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
         let wav = new WaveFile();
         ///added
 
+        var samplesForWave = [];
+        samplesForWave.push([]);
+        samplesForWave.push([]);
+
         for( var i=0; i<numSamples; i++ )
         {
-            bufL[off+i] = -1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0;
-            bufR[off+i] = -1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0;
+            //bufL[off+i] = -1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0;
+            //bufR[off+i] = -1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0;
+            samplesForWave[0].push(-1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0);
+            samplesForWave[1].push(-1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0);
         }
 
         //added
-        console.log(bufL.length,bufR.length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
+        console.log(samplesForWave[0].length,samplesForWave[1].length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
         //console.log(bufL.length,bufR.length);
         console.log();
         console.log(bufL);
 
 
-        /*var samplesForWave = [];
-        samplesForWave.push(bufL);
-        samplesForWave.push(bufR);
+        //samplesForWave.push(bufL);
+        //samplesForWave.push(bufR);
         console.log("wav.fromScratch");
-        wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);*/
-        wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
+        wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);
+        //wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
 
         var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
         var filenameFull = filename+"_"+j+".wav";
