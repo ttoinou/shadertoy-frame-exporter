@@ -604,7 +604,7 @@ EffectPass.prototype.NewTexture copy
 */
 
 
-EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url )
+EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url, secret_key )
 {
     var me = this;
     console.log(me);
@@ -771,7 +771,7 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
                                                 if( song.streamable==true )
                                                 {
                                                     texture.audio.crossOrigin = '';
-                                                    texture.audio.src = song.stream_url + "?client_id=" + SC.client_id;
+                                                    texture.audio.src = song.stream_url + "?client_id=" + SC.client_id + secret_key;
                                                     texture.audio.soundcloudInfo = song;
                                                 }
                                                 else
@@ -872,13 +872,27 @@ FrameExporter.prototype.fixSoundCloud = function(){
             
             if(input.mInfo.mType == "musicstream")
             {
-                console.log('soundcloud',input,j,input.mInfo.mSrc);
-                // wa, slot, url, buffers, cubeBuffers, keyboard
-                /*pass.NewTexture_SoundCloudPrivateTrack(
-                    gShaderToy.mEffect.mAudioContext,
-                    slot,
-                    input.mInfo.mSrc
-                );*/
+                var url = input.mInfo.mSrc;
+                var k = url.lastIndexOf('/');
+                var secret_key = url.substring(k+1,url.length);
+                var secretTrack = false;
+                if( secret_key.substring(0,2) == 's-')
+                {
+                    secretTrack = true;
+                    secret_key = 'secret_token=' + secret_key;
+                }
+
+                console.log('soundcloud',input,slot,url,secret_key,secretTrack);
+
+                if(secretTrack)
+                {
+                    pass.NewTexture_SoundCloudPrivateTrack(
+                        gShaderToy.mEffect.mAudioContext,
+                        slot,
+                        url,
+                        secret_key
+                    );
+                }
             }
             /*url.mType=="musicstream"
             var media = null;
