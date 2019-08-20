@@ -269,6 +269,12 @@ FrameExporter.prototype.createUi = function() {
     button.addEventListener('click', this.genSound.bind(this));
 
     button = document.createElement('button');
+    button.textContent = 'SC';
+    this.addClass(button, 'sfe-save');
+    this.controls.appendChild(button);
+    button.addEventListener('click', this.fixSoundCloud.bind(this));
+
+    button = document.createElement('button');
     button.textContent = 'Stop!';
     this.addClass(button, 'sfe-save');
     this.controls.appendChild(button);
@@ -597,9 +603,39 @@ Soundcloud Private tracks
 EffectPass.prototype.NewTexture copy
 */
 
-EffectPass.prototype.NewTexture_ = function( wa, slot, url, buffers, cubeBuffers, keyboard )
+
+FrameExporter.prototype.fixSoundCloud = function(){
+
+    gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
+        pass.mInputs.forEach(function mInput(input){
+
+            if(null == input)
+                return;
+            
+            if(input.mInfo.mType == "musicstream")
+            {
+                input.NewTexture_SoundCloudPrivateTrack();
+            }
+            /*url.mType=="musicstream"
+            var media = null;
+            if (input) {
+                //media = input.audio || input.video;
+                if (input.audio) {
+                    input.audio.currentTime = ct; 
+                    //console.log(input.audio.currentTime);
+                    //media.controls = true;
+                    //media.currentTime = value / 1000.0;
+                }
+            }*/
+        });
+    });
+
+}
+
+EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url, buffers, cubeBuffers, keyboard )
 {
     var me = this;
+    console.log(me);
     var renderer = this.mRenderer;
 
     if( renderer==null ) return;
@@ -615,267 +651,7 @@ EffectPass.prototype.NewTexture_ = function( wa, slot, url, buffers, cubeBuffers
         me.MakeHeader();
         return { mFailed:false, mNeedsShaderCompile:false };
     }
-    else if( url.mType=="texture" )
-    {
-        texture = {};
-        texture.mInfo = url;
-        texture.globject = null;
-        texture.loaded = false;
-        texture.image = new Image();
-        texture.image.crossOrigin = '';
-        texture.image.onload = function()
-        {
-            var rti = me.Sampler2Renderer(url.mSampler);
-
-            // O.M.G. IQIQ FIX THIS
-            var channels = renderer.TEXFMT.C4I8;
-            if (url.mID == "Xdf3zn" || url.mID == "4sf3Rn" || url.mID == "4dXGzn" || url.mID == "4sf3Rr")
-                channels = renderer.TEXFMT.C1I8;
-            
-            texture.globject = renderer.CreateTextureFromImage(renderer.TEXTYPE.T2D, texture.image, channels, rti.mFilter, rti.mWrap, rti.mVFlip);
-
-            texture.loaded = true;
-            if( me.mTextureCallbackFun!=null )
-                me.mTextureCallbackFun( me.mTextureCallbackObj, slot, texture.image, true, 1, 1, -1.0, me.mID );
-        }
-        texture.image.src = url.mSrc;
-
-
-        var returnValue = { mFailed:false, mNeedsShaderCompile: (this.mInputs[slot]==null ) || (
-                                                                (this.mInputs[slot].mInfo.mType!="texture") && 
-                                                                (this.mInputs[slot].mInfo.mType!="webcam") && 
-                                                                (this.mInputs[slot].mInfo.mType!="mic") && 
-                                                                (this.mInputs[slot].mInfo.mType!="music") && 
-                                                                (this.mInputs[slot].mInfo.mType!="musicstream") && 
-                                                                (this.mInputs[slot].mInfo.mType!="keyboard") && 
-                                                                (this.mInputs[slot].mInfo.mType!="video")) };
-        this.DestroyInput( slot );
-        this.mInputs[slot] = texture;
-        this.MakeHeader();
-        return returnValue;
-    }
-    else if( url.mType=="volume" )
-    {
-        texture = {};
-        texture.mInfo = url;
-        texture.globject = null;
-        texture.loaded = false;
-        texture.mImage = { mData:null, mXres:1, mYres:0, mZres:0 };
-        texture.mPreview = new Image();
-        texture.mPreview.crossOrigin = '';
-
-        var xmlHttp = new XMLHttpRequest();
-        if( xmlHttp==null ) return { mFailed:true };
-
-        xmlHttp.open('GET', url.mSrc, true);
-        xmlHttp.responseType = "arraybuffer";
-        xmlHttp.onerror = function()
-        {
-        }
-        xmlHttp.onload = function()
-        {
-            var data = xmlHttp.response;
-            if (!data ) return;
-
-            var file = piFile(data);
-
-            var signature = file.ReadUInt32();
-            texture.mImage.mXres = file.ReadUInt32();
-            texture.mImage.mYres = file.ReadUInt32();
-            texture.mImage.mZres = file.ReadUInt32();
-            var binNumChannels = file.ReadUInt8();
-            var binLayout = file.ReadUInt8();
-            var binFormat = file.ReadUInt16();
-            var format = renderer.TEXFMT.C1I8;
-                 if( binNumChannels==1 && binFormat==0 )  format = renderer.TEXFMT.C1I8;
-            else if( binNumChannels==2 && binFormat==0 )  format = renderer.TEXFMT.C2I8;
-            else if( binNumChannels==3 && binFormat==0 )  format = renderer.TEXFMT.C3I8;
-            else if( binNumChannels==4 && binFormat==0 )  format = renderer.TEXFMT.C4I8;
-            else if( binNumChannels==1 && binFormat==10 ) format = renderer.TEXFMT.C1F32;
-            else if( binNumChannels==2 && binFormat==10 ) format = renderer.TEXFMT.C2F32;
-            else if( binNumChannels==3 && binFormat==10 ) format = renderer.TEXFMT.C3F32;
-            else if( binNumChannels==4 && binFormat==10 ) format = renderer.TEXFMT.C4F32;
-            else return;
-
-            var buffer = new Uint8Array(data, 20); // skip 16 bytes (header of .bin)
-
-            var rti = me.Sampler2Renderer(url.mSampler);
-
-            texture.globject = renderer.CreateTexture(renderer.TEXTYPE.T3D, texture.mImage.mXres, texture.mImage.mYres, format, rti.mFilter, rti.mWrap, buffer);
-
-            if( texture.globject==null ) return { mFailed:true };
-
-            if (me.mTextureCallbackFun != null)
-            {
-                me.mTextureCallbackFun( me.mTextureCallbackObj, slot, texture.mPreview, true, 1, 1, -1.0, me.mID );
-            }
-
-            texture.loaded = true;
-
-            // load icon for it
-            texture.mPreview.onload = function()
-            {
-                if( me.mTextureCallbackFun!=null )
-                    me.mTextureCallbackFun( me.mTextureCallbackObj, slot, texture.mPreview, true, 1, 1, -1.0, me.mID );
-            }
-            texture.mPreview.src = url.mPreviewSrc;
-        }
-        xmlHttp.send("");
-
-
-        var returnValue = { mFailed:false, mNeedsShaderCompile: (this.mInputs[slot]==null ) || (
-                                                                (this.mInputs[slot].mInfo.mType!="volume")) };
-        this.DestroyInput( slot );
-        this.mInputs[slot] = texture;
-        this.MakeHeader();
-        return returnValue;
-    }
-    else if( url.mType=="cubemap" )
-    {
-        texture = {};
-        texture.mInfo = url;
-        texture.globject = null;
-        texture.loaded = false;
-
-        var rti = me.Sampler2Renderer(url.mSampler);
-
-        if( assetID_to_cubemapBuferID(url.mID)!=-1 )
-        {
-            texture.mImage = new Image();
-            texture.mImage.onload = function()
-            {
-                texture.loaded = true;
-                if( me.mTextureCallbackFun!=null )
-                    me.mTextureCallbackFun( me.mTextureCallbackObj, slot, texture.mImage, true, 2, 1, -1.0, me.mID );
-            }
-            texture.mImage.src = "/media/previz/cubemap00.png";
-
-            this.mEffect.ResizeCubemapBuffer(0, 1024, 1024 );
-
-        }
-        else
-        {
-            texture.image = [ new Image(), new Image(), new Image(), new Image(), new Image(), new Image() ];
-
-            var numLoaded = 0;
-            for( var i=0; i<6; i++ )
-            {
-                texture.image[i].mId = i;
-                texture.image[i].crossOrigin = '';
-                texture.image[i].onload = function()
-                {
-                    var id = this.mId;
-                    numLoaded++;
-                    if( numLoaded==6 )
-                    {
-                        texture.globject = renderer.CreateTextureFromImage(renderer.TEXTYPE.CUBEMAP, texture.image, renderer.TEXFMT.C4I8, rti.mFilter, rti.mWrap, rti.mVFlip);
-                        texture.loaded = true;
-                        if (me.mTextureCallbackFun != null)
-                            me.mTextureCallbackFun(me.mTextureCallbackObj, slot, texture.image[0], true, 2, 1, -1.0, me.mID);
-                    }
-                }
-
-                if( i == 0) 
-                {
-                    texture.image[i].src = url.mSrc;
-                } 
-                else 
-                {
-                    var n = url.mSrc.lastIndexOf(".");
-                    texture.image[i].src = url.mSrc.substring(0, n) + "_" + i + url.mSrc.substring(n, url.mSrc.length);
-                }
-            }
-        }
-
-        var returnValue = { mFailed:false, mNeedsShaderCompile: (this.mInputs[slot]==null ) || (
-                                                                (this.mInputs[slot].mInfo.mType!="cubemap")) };
-
-        this.DestroyInput( slot );
-        this.mInputs[slot] = texture;
-        this.MakeHeader();
-        return returnValue;
-    }
-    else if( url.mType==="webcam" )
-    {
-        texture = {};
-        texture.mInfo = url;
-        texture.globject = null;
-        texture.loaded = false;
-
-        texture.video = document.createElement('video');
-        texture.video.width = 320;
-        texture.video.height = 240;
-        texture.video.autoplay = true;
-        texture.video.loop = true;
-        texture.video.stream = null;
-        texture.mForceMuted = this.mForceMuted;
-        texture.mImage = null;
-
-        var rti = me.Sampler2Renderer(url.mSampler);
-
-        var loadImageInsteadOfWebCam = function()
-        {
-            texture.mImage = new Image();
-            texture.mImage.onload = function()
-            {
-                texture.loaded = true;
-                texture.globject = renderer.CreateTextureFromImage(renderer.TEXTYPE.T2D, texture.mImage, renderer.TEXFMT.C4I8, rti.mFilter, rti.mWrap, rti.mVFlip);
-                if( me.mTextureCallbackFun!=null )
-                    me.mTextureCallbackFun( me.mTextureCallbackObj, slot, texture.mImage, true, 7, 1, -1.0, me.mID );
-            }
-            texture.mImage.src = "/media/previz/webcam.png";
-        }
-        
-        loadImageInsteadOfWebCam();
-
-        if( typeof navigator.getUserMedia !== "undefined"  && texture.mForceMuted===false )
-        {
-            texture.video.addEventListener("canplay", function (e)
-            {
-                try
-                {
-                    texture.mImage = null;
-                    if( texture.globject != null )
-                        renderer.DestroyTexture( texture.globject );
-                    texture.globject = renderer.CreateTextureFromImage(renderer.TEXTYPE.T2D, texture.video, renderer.TEXFMT.C4I8, rti.mFilter, rti.mWrap, rti.mVFlip);
-                    texture.loaded = true;
-                }
-                catch(e)
-                {
-                    loadImageInsteadOfWebCam();
-                    alert( 'Your browser can not transfer webcam data to the GPU.');
-                }
-            } );
-
-            navigator.mediaDevices.getUserMedia( 
-                                { "video": { width:     { min: 640, ideal:1280, max:1920 },
-                                             height:    { min: 480, ideal: 720, max:1080 },
-                                             frameRate: { min:  10, ideal:  30, max:  30 } },
-                                  "audio": false } )
-                                .then( function(stream)
-                                       {
-                                            texture.video.srcObject = stream;
-                                       } )
-                                .catch( function(error)
-                                        {
-                                            loadImageInsteadOfWebCam();
-                                            alert( 'Unable to capture WebCam. Please reload the page.' );
-                                        } );
-        }
-        var returnValue = { mFailed:false, mNeedsShaderCompile: (this.mInputs[slot]==null ) || (
-                                                                (this.mInputs[slot].mInfo.mType!="texture") && 
-                                                                (this.mInputs[slot].mInfo.mType!="webcam") && 
-                                                                (this.mInputs[slot].mInfo.mType!="mic") && 
-                                                                (this.mInputs[slot].mInfo.mType!="music") && 
-                                                                (this.mInputs[slot].mInfo.mType!="musicstream") && 
-                                                                (this.mInputs[slot].mInfo.mType!="keyboard") && 
-                                                                (this.mInputs[slot].mInfo.mType!="video")) };
-        this.DestroyInput( slot );
-        this.mInputs[slot] = texture;
-        this.MakeHeader();
-        return returnValue;
-    }
-    else if( url.mType=="mic" )
+    /*else if( url.mType=="mic" )
     {
         texture = {};
         texture.mInfo = url;
@@ -927,64 +703,7 @@ EffectPass.prototype.NewTexture_ = function( wa, slot, url, buffers, cubeBuffers
         this.mInputs[slot] = texture;
         this.MakeHeader();
         return returnValue;
-    }
-    else if( url.mType=="video" )
-    {
-        texture = {};
-        texture.mInfo = url;
-        texture.globject = null;
-        texture.loaded = false;
-        texture.video = document.createElement('video');
-        texture.video.loop = true;
-        texture.video.mPaused = this.mForcePaused;
-        texture.video.mMuted = this.mForceMuted;
-        texture.video.muted  = this.mForceMuted;
-        if( this.mForceMuted==true )
-            texture.video.volume = 0;
-        texture.video.autoplay = false;
-        texture.video.hasFalled = false;
-        
-        var rti = me.Sampler2Renderer(url.mSampler);
-
-        texture.video.addEventListener("canplay", function (e)
-        {
-            texture.video.play();
-            texture.video.mPaused = false;
-
-            //var rti = me.Sampler2Renderer(url.mSampler);
-
-            texture.globject = renderer.CreateTextureFromImage(renderer.TEXTYPE.T2D, texture.video, renderer.TEXFMT.C4I8, rti.mFilter, rti.mWrap, rti.mVFlip);
-            texture.loaded = true;
-            
-            if( me.mTextureCallbackFun!=null )
-                me.mTextureCallbackFun( me.mTextureCallbackObj, slot, texture.video, true, 3, 1, -1.0, me.mID );
-
-        } );
-
-        texture.video.addEventListener( "error", function(e)
-        {
-               if( texture.video.hasFalled==true ) { alert("Error: cannot load video" ); return; }
-               var str = texture.video.src;
-               str = str.substr(0,str.lastIndexOf('.') ) + ".mp4";
-               texture.video.src = str;
-               texture.video.hasFalled = true;
-        } );
-
-        texture.video.src = url.mSrc;
-
-        var returnValue = { mFailed:false, mNeedsShaderCompile: (this.mInputs[slot]==null ) || (
-                                                                (this.mInputs[slot].mInfo.mType!="texture") && 
-                                                                (this.mInputs[slot].mInfo.mType!="webcam") && 
-                                                                (this.mInputs[slot].mInfo.mType!="mic") && 
-                                                                (this.mInputs[slot].mInfo.mType!="music") && 
-                                                                (this.mInputs[slot].mInfo.mType!="musicstream") && 
-                                                                (this.mInputs[slot].mInfo.mType!="keyboard") && 
-                                                                (this.mInputs[slot].mInfo.mType!="video")) };
-        this.DestroyInput( slot );
-        this.mInputs[slot] = texture;
-        this.MakeHeader();
-        return returnValue;
-    }
+    }*/
     else if( url.mType=="music" || url.mType=="musicstream" )
     {
         texture = {};
@@ -1073,6 +792,8 @@ EffectPass.prototype.NewTexture_ = function( wa, slot, url, buffers, cubeBuffers
         {
             if(url.mType=="musicstream")
             {
+                console.log("Setting Soundcloud link");
+
                 SC.resolve(url.mSrc).then( function(song) 
                                            {
                                                 if( song.streamable==true )
@@ -1121,32 +842,7 @@ EffectPass.prototype.NewTexture_ = function( wa, slot, url, buffers, cubeBuffers
         this.MakeHeader();
         return returnValue;
     }
-    else if( url.mType=="keyboard" )
-    {
-        texture = {};
-        texture.mInfo = url;
-        texture.globject = null;
-        texture.loaded = true;
-
-        texture.keyboard = {};
-
-        if( me.mTextureCallbackFun!=null )
-            me.mTextureCallbackFun( me.mTextureCallbackObj, slot, {mImage: keyboard.mIcon, mData: keyboard.mData}, false, 6, 1, -1.0, me.mID );
-
-        var returnValue = { mFailed:false, mNeedsShaderCompile: (this.mInputs[slot]==null ) || (
-                                                                (this.mInputs[slot].mInfo.mType!="texture") && 
-                                                                (this.mInputs[slot].mInfo.mType!="webcam") && 
-                                                                (this.mInputs[slot].mInfo.mType!="mic") && 
-                                                                (this.mInputs[slot].mInfo.mType!="music") && 
-                                                                (this.mInputs[slot].mInfo.mType!="musicstream") && 
-                                                                (this.mInputs[slot].mInfo.mType!="keyboard") && 
-                                                                (this.mInputs[slot].mInfo.mType!="video")) };
-        this.DestroyInput( slot );
-        this.mInputs[slot] = texture;
-        this.MakeHeader();
-        return returnValue;
-    }
-    else if( url.mType=="buffer" )
+    /*else if( url.mType=="buffer" )
     {
         texture = {};
         texture.mInfo = url;
@@ -1182,7 +878,7 @@ EffectPass.prototype.NewTexture_ = function( wa, slot, url, buffers, cubeBuffers
 
         this.MakeHeader();
         return returnValue;
-    }
+    }*/
     else
     {
         alert( "input type error" );
