@@ -864,14 +864,21 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
 FrameExporter.prototype.fixSoundCloud = function(){
 
     gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
-        pass.mInputs.forEach(function mInput(input){
+        //console.log('pass',pass);
+        pass.mInputs.forEach(function mInput(input,slot){
 
             if(null == input)
                 return;
             
             if(input.mInfo.mType == "musicstream")
             {
-                input.NewTexture_SoundCloudPrivateTrack();
+                console.log('soundcloud',input,j,input.mInfo.mSrc);
+                // wa, slot, url, buffers, cubeBuffers, keyboard
+                /*pass.NewTexture_SoundCloudPrivateTrack(
+                    gShaderToy.mEffect.mAudioContext,
+                    slot,
+                    input.mInfo.mSrc
+                );*/
             }
             /*url.mType=="musicstream"
             var media = null;
