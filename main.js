@@ -87,7 +87,10 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
 
 
     //--------------------------------
-    var numSamples = this.mTmpBufferSamples;
+    //var numSamples = this.mTmpBufferSamples;
+    console.log(duration,this.mSampleRate);
+    var numSamples = Math.floor(duration * this.mSampleRate);
+
     var bufL = this.mBuffer.getChannelData(0); // Float32Array
     var bufR = this.mBuffer.getChannelData(1); // Float32Array
     var numBlocks = this.mPlaySamples / numSamples;
@@ -95,10 +98,11 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
 
     console.log(bufL.length,bufR.length);
 
-    for( var j=0; j<numBlocks; j++ )
+    //for( var j=0; j<numBlocks; j++ )
     {
-        var off = j*this.mTmpBufferSamples;
-        
+        //var off = j*this.mTmpBufferSamples;
+        var off = 0;
+
         this.mRenderer.SetShaderConstant1F_Pos(l2, off / this.mSampleRate);
         this.mRenderer.DrawUnitQuad_XY(l1);
 
@@ -142,7 +146,8 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
         //wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
 
         var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
-        var filenameFull = filename+"_"+j+".wav";
+        //var filenameFull = filename+"_"+j+".wav";
+        var filenameFull = filename+".wav";
         console.log(filenameFull);
         saveAs(blob,filenameFull);
         ///added
@@ -188,6 +193,7 @@ FrameExporter.prototype.genSound = function() {
     console.log(wav.toBuffer()); // Uint8Array(4044)
     saveAs(blob,"output2.wav");*/
 
+    var duration = parseFloat(this.secondsInput.value);
 
     gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
         //console.log(pass);
@@ -200,7 +206,7 @@ FrameExporter.prototype.genSound = function() {
             //let wa = this.mAudioContext;
             //let da = new Date();
 
-            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),"sound");
+            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),"sound",duration);
         }   
     });
 
