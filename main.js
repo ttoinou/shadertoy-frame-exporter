@@ -604,34 +604,6 @@ EffectPass.prototype.NewTexture copy
 */
 
 
-FrameExporter.prototype.fixSoundCloud = function(){
-
-    gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
-        pass.mInputs.forEach(function mInput(input){
-
-            if(null == input)
-                return;
-            
-            if(input.mInfo.mType == "musicstream")
-            {
-                input.NewTexture_SoundCloudPrivateTrack();
-            }
-            /*url.mType=="musicstream"
-            var media = null;
-            if (input) {
-                //media = input.audio || input.video;
-                if (input.audio) {
-                    input.audio.currentTime = ct; 
-                    //console.log(input.audio.currentTime);
-                    //media.controls = true;
-                    //media.currentTime = value / 1000.0;
-                }
-            }*/
-        });
-    });
-
-}
-
 EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url, buffers, cubeBuffers, keyboard )
 {
     var me = this;
@@ -886,6 +858,34 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
     }
 
     return { mFailed: true };
+
+}
+
+FrameExporter.prototype.fixSoundCloud = function(){
+
+    gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
+        pass.mInputs.forEach(function mInput(input){
+
+            if(null == input)
+                return;
+            
+            if(input.mInfo.mType == "musicstream")
+            {
+                input.NewTexture_SoundCloudPrivateTrack();
+            }
+            /*url.mType=="musicstream"
+            var media = null;
+            if (input) {
+                //media = input.audio || input.video;
+                if (input.audio) {
+                    input.audio.currentTime = ct; 
+                    //console.log(input.audio.currentTime);
+                    //media.controls = true;
+                    //media.currentTime = value / 1000.0;
+                }
+            }*/
+        });
+    });
 
 }
 
