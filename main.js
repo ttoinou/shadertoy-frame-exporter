@@ -24,192 +24,6 @@ FrameExporter.prototype.disablePreview = function() {
     this.stopPatch();
 };
 
-// from EffectPass.prototype.Paint_Sound
-EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
-{
-    //console.log("hey!");
-    //todo
-    var dates = [ d.getFullYear(), // the year (four digits)
-                  d.getMonth(),    // the month (from 0-11)
-                  d.getDate(),     // the day of the month (from 1-31)
-                  d.getHours()*60.0*60 + d.getMinutes()*60 + d.getSeconds() ];
-
-    var resos = [ 0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0 ];
-
-    this.mRenderer.SetRenderTarget(this.mRenderFBO);
-
-    this.mRenderer.SetViewport([0, 0, this.mTextureDimensions, this.mTextureDimensions]);
-    this.mRenderer.AttachShader(this.mProgram);
-    this.mRenderer.SetBlend( false );
-
-    var texID = [null, null, null, null];
-    for (var i = 0; i < this.mInputs.length; i++)
-    {
-        var inp = this.mInputs[i];
-
-        if( inp==null )
-        {
-        }
-        else if( inp.mInfo.mType=="texture" )
-        {
-            if( inp.loaded==true  )
-            {
-                texID[i] = inp.globject;
-                resos[3*i+0] = inp.image.width;
-                resos[3*i+1] = inp.image.height;
-                resos[3*i+2] = 1;
-            }
-        }
-        else if( inp.mInfo.mType=="volume" )
-        {
-            if( inp.loaded==true  )
-            {
-                texID[i] = inp.globject;
-                resos[3*i+0] = inp.mImage.mXres;
-                resos[3*i+1] = inp.mImage.mYres;
-                resos[3*i+2] = inp.mImage.mZres;
-            }
-        }
-    }
-
-    this.mRenderer.AttachTextures(4, texID[0], texID[1], texID[2], texID[3]);
-
-    var l2 = this.mRenderer.SetShaderConstantLocation(this.mProgram, "iBlockOffset");
-    this.mRenderer.SetShaderConstant4FV("iDate", dates);
-    this.mRenderer.SetShaderConstant3FV("iChannelResolution", resos);
-    this.mRenderer.SetShaderConstant1F("iSampleRate", this.mSampleRate);
-    this.mRenderer.SetShaderTextureUnit("iChannel0", 0);
-    this.mRenderer.SetShaderTextureUnit("iChannel1", 1);
-    this.mRenderer.SetShaderTextureUnit("iChannel2", 2);
-    this.mRenderer.SetShaderTextureUnit("iChannel3", 3);
-
-    var l1 = this.mRenderer.GetAttribLocation(this.mProgram, "pos");
-
-
-    //--------------------------------
-    //var numSamples = this.mTmpBufferSamples;
-    console.log(duration,this.mSampleRate);
-    var numSamples = Math.floor(duration * this.mSampleRate); //var numSamples = this.mTmpBufferSamples;
-    var numSamplesMaxPerFile = 8820000; //todo
-    //for now I can do 200 seconds at 44100 Hz and stereo... good enough!!
-
-    var bufL = this.mBuffer.getChannelData(0); // Float32Array
-    var bufR = this.mBuffer.getChannelData(1); // Float32Array
-    var numBlocks = numSamples / this.mTmpBufferSamples;
-
-    console.log(bufL.length,bufR.length);
-
-    //added
-    let wav = new WaveFile();
-    var samplesForWave = [];
-    samplesForWave.push([]);
-    samplesForWave.push([]);
-    ///added
-
-    for( var j=0; j<numBlocks; j++ )
-    {
-        var off = j*this.mTmpBufferSamples;
-
-        this.mRenderer.SetShaderConstant1F_Pos(l2, off / this.mSampleRate);
-        this.mRenderer.DrawUnitQuad_XY(l1);
-
-        this.mRenderer.GetPixelData(this.mData, 0, this.mTextureDimensions, this.mTextureDimensions);
-
-        //dorni
-        //Sound buffer : previous function is where this.mData (sound values) are generated
-        /*for( var i=0; i<4*numSamples; i++ )
-        {
-            this.mData[i] = 0.0;//Math.sin(3.14*440.0*i);
-        }*/
-        ///dorni
-
-
-        for( var i=0; i<this.mTmpBufferSamples; i++ )
-        {
-            samplesForWave[0][off+i] = (-1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0);
-            samplesForWave[1][off+i] = (-1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0);
-        }
-
-    }
-
-
-    //added
-    console.log(samplesForWave[0].length,samplesForWave[1].length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
-    //console.log(bufL.length,bufR.length);
-
-    //samplesForWave.push(bufL);
-    //samplesForWave.push(bufR);
-    console.log("wav.fromScratch");
-    wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);
-    //wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
-
-    var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
-    //var filenameFull = filename+"_"+j+".wav";
-    var filenameFull = filename+".wav";
-    console.log(filenameFull);
-    saveAs(blob,filenameFull);
-    ///added
-
-    this.mRenderer.DetachShader();
-    this.mRenderer.DettachTextures();
-    this.mRenderer.SetRenderTarget(null);
-
-    //-------------------------------
-
-    /*if( this.mPlayNode!=null ) { this.mPlayNode.disconnect(); this.mPlayNode.stop(); }
-
-    this.mPlayNode = wa.createBufferSource();
-    this.mPlayNode.buffer = this.mBuffer;
-    this.mPlayNode.connect( this.mGainNode );
-    this.mPlayNode.state = this.mPlayNode.noteOn;
-    this.mPlayNode.start(0);*/
-
-
-}
-
-FrameExporter.prototype.genSound = function() {
-    console.log("genSound");
-
-    let wav = new WaveFile();
-    /*const numSamples = 500;
-    var samples = [];
-    samples.push([]);
-    samples.push([]);
-
-    for(var i = 0 ; i < numSamples; i++)
-    {
-        samples[0].push(Math.sin(80.0*3.14*i/48000.0));
-        samples[1].push(Math.sin(440.0*3.14*i/48000.0));
-    }
-
-    wav.fromScratch(2, 48000, '32f', samples);
-    // https://stackoverflow.com/questions/23451726/saving-binary-data-as-file-using-javascript-from-a-browser
-    var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
-
-    console.log(wav.toBuffer()); // Uint8Array(4044)
-    saveAs(blob,"output2.wav");*/
-
-    var duration = parseFloat(this.secondsInput.value);
-
-    gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
-        //console.log(pass);
-        if( pass.mType==="sound" )
-        {
-            //console.log("found!");
-
-            //me.mEffect.Paint(ltime/1000.0, dtime/1000.0, me.mFPS.GetFPS(), me.mMouseOriX, me.mMouseOriY, me.mMousePosX, me.mMousePosY, me.mIsPaused );
-            //Effect.prototype.Paint = function(time, dtime, fps, mouseOriX, mouseOriY, mousePosX, mousePosY, isPaused)
-            //let wa = this.mAudioContext;
-            //let da = new Date();
-
-            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),this.prefix.value,duration);
-        }   
-    });
-
-/*example of ffmpeg command line : ffmpeg -i input1.wav -i input2.wav -i input3.wav -i input4.wav \
--filter_complex '[0:0][1:0][2:0][3:0]concat=n=4:v=0:a=1[out]' \
--map '[out]' output.wav*/
-};
 
 FrameExporter.prototype.startRecording = function() {
     this.record = true;
@@ -581,6 +395,198 @@ FrameExporter.prototype.pad = function(number, length) {
         str = '0' + str;
     }
     return str;
+};
+
+/*
+Sound buffer export to .WAV
+*/
+
+
+// from EffectPass.prototype.Paint_Sound
+EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
+{
+    //console.log("hey!");
+    //todo
+    var dates = [ d.getFullYear(), // the year (four digits)
+                  d.getMonth(),    // the month (from 0-11)
+                  d.getDate(),     // the day of the month (from 1-31)
+                  d.getHours()*60.0*60 + d.getMinutes()*60 + d.getSeconds() ];
+
+    var resos = [ 0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0, 0.0,0.0,0.0 ];
+
+    this.mRenderer.SetRenderTarget(this.mRenderFBO);
+
+    this.mRenderer.SetViewport([0, 0, this.mTextureDimensions, this.mTextureDimensions]);
+    this.mRenderer.AttachShader(this.mProgram);
+    this.mRenderer.SetBlend( false );
+
+    var texID = [null, null, null, null];
+    for (var i = 0; i < this.mInputs.length; i++)
+    {
+        var inp = this.mInputs[i];
+
+        if( inp==null )
+        {
+        }
+        else if( inp.mInfo.mType=="texture" )
+        {
+            if( inp.loaded==true  )
+            {
+                texID[i] = inp.globject;
+                resos[3*i+0] = inp.image.width;
+                resos[3*i+1] = inp.image.height;
+                resos[3*i+2] = 1;
+            }
+        }
+        else if( inp.mInfo.mType=="volume" )
+        {
+            if( inp.loaded==true  )
+            {
+                texID[i] = inp.globject;
+                resos[3*i+0] = inp.mImage.mXres;
+                resos[3*i+1] = inp.mImage.mYres;
+                resos[3*i+2] = inp.mImage.mZres;
+            }
+        }
+    }
+
+    this.mRenderer.AttachTextures(4, texID[0], texID[1], texID[2], texID[3]);
+
+    var l2 = this.mRenderer.SetShaderConstantLocation(this.mProgram, "iBlockOffset");
+    this.mRenderer.SetShaderConstant4FV("iDate", dates);
+    this.mRenderer.SetShaderConstant3FV("iChannelResolution", resos);
+    this.mRenderer.SetShaderConstant1F("iSampleRate", this.mSampleRate);
+    this.mRenderer.SetShaderTextureUnit("iChannel0", 0);
+    this.mRenderer.SetShaderTextureUnit("iChannel1", 1);
+    this.mRenderer.SetShaderTextureUnit("iChannel2", 2);
+    this.mRenderer.SetShaderTextureUnit("iChannel3", 3);
+
+    var l1 = this.mRenderer.GetAttribLocation(this.mProgram, "pos");
+
+
+    //--------------------------------
+    //var numSamples = this.mTmpBufferSamples;
+    console.log(duration,this.mSampleRate);
+    var numSamples = Math.floor(duration * this.mSampleRate); //var numSamples = this.mTmpBufferSamples;
+    var numSamplesMaxPerFile = 8820000; //todo
+    //for now I can do 200 seconds at 44100 Hz and stereo... good enough!!
+
+    var bufL = this.mBuffer.getChannelData(0); // Float32Array
+    var bufR = this.mBuffer.getChannelData(1); // Float32Array
+    var numBlocks = numSamples / this.mTmpBufferSamples;
+
+    console.log(bufL.length,bufR.length);
+
+    //added
+    let wav = new WaveFile();
+    var samplesForWave = [];
+    samplesForWave.push([]);
+    samplesForWave.push([]);
+    ///added
+
+    for( var j=0; j<numBlocks; j++ )
+    {
+        var off = j*this.mTmpBufferSamples;
+
+        this.mRenderer.SetShaderConstant1F_Pos(l2, off / this.mSampleRate);
+        this.mRenderer.DrawUnitQuad_XY(l1);
+
+        this.mRenderer.GetPixelData(this.mData, 0, this.mTextureDimensions, this.mTextureDimensions);
+
+        //dorni
+        //Sound buffer : previous function is where this.mData (sound values) are generated
+        /*for( var i=0; i<4*numSamples; i++ )
+        {
+            this.mData[i] = 0.0;//Math.sin(3.14*440.0*i);
+        }*/
+        ///dorni
+
+
+        for( var i=0; i<this.mTmpBufferSamples; i++ )
+        {
+            samplesForWave[0][off+i] = (-1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0);
+            samplesForWave[1][off+i] = (-1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0);
+        }
+
+    }
+
+
+    //added
+    console.log(samplesForWave[0].length,samplesForWave[1].length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
+    //console.log(bufL.length,bufR.length);
+
+    //samplesForWave.push(bufL);
+    //samplesForWave.push(bufR);
+    console.log("wav.fromScratch");
+    wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);
+    //wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
+
+    var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
+    //var filenameFull = filename+"_"+j+".wav";
+    var filenameFull = filename+".wav";
+    console.log(filenameFull);
+    saveAs(blob,filenameFull);
+    ///added
+
+    this.mRenderer.DetachShader();
+    this.mRenderer.DettachTextures();
+    this.mRenderer.SetRenderTarget(null);
+
+    //-------------------------------
+
+    /*if( this.mPlayNode!=null ) { this.mPlayNode.disconnect(); this.mPlayNode.stop(); }
+
+    this.mPlayNode = wa.createBufferSource();
+    this.mPlayNode.buffer = this.mBuffer;
+    this.mPlayNode.connect( this.mGainNode );
+    this.mPlayNode.state = this.mPlayNode.noteOn;
+    this.mPlayNode.start(0);*/
+
+
+}
+
+FrameExporter.prototype.genSound = function() {
+    console.log("genSound");
+
+    let wav = new WaveFile();
+    /*const numSamples = 500;
+    var samples = [];
+    samples.push([]);
+    samples.push([]);
+
+    for(var i = 0 ; i < numSamples; i++)
+    {
+        samples[0].push(Math.sin(80.0*3.14*i/48000.0));
+        samples[1].push(Math.sin(440.0*3.14*i/48000.0));
+    }
+
+    wav.fromScratch(2, 48000, '32f', samples);
+    // https://stackoverflow.com/questions/23451726/saving-binary-data-as-file-using-javascript-from-a-browser
+    var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
+
+    console.log(wav.toBuffer()); // Uint8Array(4044)
+    saveAs(blob,"output2.wav");*/
+
+    var duration = parseFloat(this.secondsInput.value);
+
+    gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
+        //console.log(pass);
+        if( pass.mType==="sound" )
+        {
+            //console.log("found!");
+
+            //me.mEffect.Paint(ltime/1000.0, dtime/1000.0, me.mFPS.GetFPS(), me.mMouseOriX, me.mMouseOriY, me.mMousePosX, me.mMousePosY, me.mIsPaused );
+            //Effect.prototype.Paint = function(time, dtime, fps, mouseOriX, mouseOriY, mousePosX, mousePosY, isPaused)
+            //let wa = this.mAudioContext;
+            //let da = new Date();
+
+            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),this.prefix.value,duration);
+        }   
+    });
+
+/*example of ffmpeg command line : ffmpeg -i input1.wav -i input2.wav -i input3.wav -i input4.wav \
+-filter_complex '[0:0][1:0][2:0][3:0]concat=n=4:v=0:a=1[out]' \
+-map '[out]' output.wav*/
 };
 
 /*
