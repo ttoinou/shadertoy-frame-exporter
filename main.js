@@ -604,7 +604,7 @@ EffectPass.prototype.NewTexture copy
 */
 
 
-EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url, buffers, cubeBuffers, keyboard )
+EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url )
 {
     var me = this;
     console.log(me);
