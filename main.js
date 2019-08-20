@@ -89,19 +89,26 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
     //--------------------------------
     //var numSamples = this.mTmpBufferSamples;
     console.log(duration,this.mSampleRate);
-    var numSamples = Math.floor(duration * this.mSampleRate);
+    var numSamples = Math.floor(duration * this.mSampleRate); //var numSamples = this.mTmpBufferSamples;
+    var numSamplesMaxPerFile = 8820000; //todo
+    //for now I can do 200 seconds at 44100 Hz and stereo... good enough!!
 
     var bufL = this.mBuffer.getChannelData(0); // Float32Array
     var bufR = this.mBuffer.getChannelData(1); // Float32Array
-    var numBlocks = this.mPlaySamples / numSamples;
-    numBlocks = 1;
+    var numBlocks = numSamples / this.mTmpBufferSamples;
 
     console.log(bufL.length,bufR.length);
 
-    //for( var j=0; j<numBlocks; j++ )
+    //added
+    let wav = new WaveFile();
+    var samplesForWave = [];
+    samplesForWave.push([]);
+    samplesForWave.push([]);
+    ///added
+
+    for( var j=0; j<numBlocks; j++ )
     {
-        //var off = j*this.mTmpBufferSamples;
-        var off = 0;
+        var off = j*this.mTmpBufferSamples;
 
         this.mRenderer.SetShaderConstant1F_Pos(l2, off / this.mSampleRate);
         this.mRenderer.DrawUnitQuad_XY(l1);
@@ -116,43 +123,32 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
         }*/
         ///dorni
 
-        //added
-        let wav = new WaveFile();
-        ///added
 
-        var samplesForWave = [];
-        samplesForWave.push([]);
-        samplesForWave.push([]);
-
-        for( var i=0; i<numSamples; i++ )
+        for( var i=0; i<this.mTmpBufferSamples; i++ )
         {
-            //bufL[off+i] = -1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0;
-            //bufR[off+i] = -1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0;
-            samplesForWave[0].push(-1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0);
-            samplesForWave[1].push(-1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0);
+            samplesForWave[0][off+i] = (-1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0);
+            samplesForWave[1][off+i] = (-1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0);
         }
 
-        //added
-        console.log(samplesForWave[0].length,samplesForWave[1].length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
-        //console.log(bufL.length,bufR.length);
-        console.log();
-        console.log(bufL);
-
-
-        //samplesForWave.push(bufL);
-        //samplesForWave.push(bufR);
-        console.log("wav.fromScratch");
-        wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);
-        //wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
-
-        var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
-        //var filenameFull = filename+"_"+j+".wav";
-        var filenameFull = filename+".wav";
-        console.log(filenameFull);
-        saveAs(blob,filenameFull);
-        ///added
-
     }
+
+
+    //added
+    console.log(samplesForWave[0].length,samplesForWave[1].length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
+    //console.log(bufL.length,bufR.length);
+
+    //samplesForWave.push(bufL);
+    //samplesForWave.push(bufR);
+    console.log("wav.fromScratch");
+    wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);
+    //wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
+
+    var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
+    //var filenameFull = filename+"_"+j+".wav";
+    var filenameFull = filename+".wav";
+    console.log(filenameFull);
+    saveAs(blob,filenameFull);
+    ///added
 
     this.mRenderer.DetachShader();
     this.mRenderer.DettachTextures();
