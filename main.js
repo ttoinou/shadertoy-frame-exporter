@@ -210,6 +210,9 @@ FrameExporter.prototype.genSound = function() {
         }   
     });
 
+/*example of ffmpeg command line : ffmpeg -i input1.wav -i input2.wav -i input3.wav -i input4.wav \
+-filter_complex '[0:0][1:0][2:0][3:0]concat=n=4:v=0:a=1[out]' \
+-map '[out]' output.wav*/
 };
 
 FrameExporter.prototype.startRecording = function() {
