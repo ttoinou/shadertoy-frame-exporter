@@ -206,7 +206,7 @@ FrameExporter.prototype.genSound = function() {
             //let wa = this.mAudioContext;
             //let da = new Date();
 
-            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),"sound",duration);
+            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),this.prefix.value,duration);
         }   
     });
 
