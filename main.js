@@ -24,6 +24,26 @@ FrameExporter.prototype.disablePreview = function() {
     this.stopPatch();
 };
 
+FrameExporter.prototype.genSound = function() {
+    console.log("genSound");
+
+    let wav = new WaveFile();
+    const numSamples = 50000;
+    var samples = [];
+    samples.push([]);
+    samples.push([]);
+
+    for(var i = 0 ; i < numSamples; i++)
+    {
+        samples[0].push(Math.sin(80.0*3.14*i/48000.0));
+        samples[1].push(Math.sin(440.0*3.14*i/48000.0));
+    }
+
+    wav.fromScratch(2, 48000, '32f', samples);
+    saveAs(wav.toBuffer(),"output.wav");
+    //fs.writeFileSync("./output.wav",wav.toBuffer());
+};
+
 FrameExporter.prototype.startRecording = function() {
     this.record = true;
     this.frameUpdated = true;
@@ -261,7 +281,13 @@ FrameExporter.prototype.createUi = function() {
     this.controls.appendChild(button);
     button.addEventListener('click', this.startRecording.bind(this));
 
-    var button = document.createElement('button');
+    button = document.createElement('button');
+    button.textContent = 'Sound!';
+    this.addClass(button, 'sfe-save');
+    this.controls.appendChild(button);
+    button.addEventListener('click', this.genSound.bind(this));
+
+    button = document.createElement('button');
     button.textContent = 'Stop!';
     this.addClass(button, 'sfe-save');
     this.controls.appendChild(button);
