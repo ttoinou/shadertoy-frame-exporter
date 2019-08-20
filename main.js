@@ -24,9 +24,10 @@ FrameExporter.prototype.disablePreview = function() {
     this.stopPatch();
 };
 
+// from EffectPass.prototype.Paint_Sound
 EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
 {
-    console.log("hey!");
+    //console.log("hey!");
     //todo
     var dates = [ d.getFullYear(), // the year (four digits)
                   d.getMonth(),    // the month (from 0-11)
@@ -84,11 +85,16 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
 
     var l1 = this.mRenderer.GetAttribLocation(this.mProgram, "pos");
 
+
     //--------------------------------
     var numSamples = this.mTmpBufferSamples;
     var bufL = this.mBuffer.getChannelData(0); // Float32Array
     var bufR = this.mBuffer.getChannelData(1); // Float32Array
     var numBlocks = this.mPlaySamples / numSamples;
+    numBlocks = 1;
+
+    console.log(bufL.length,bufR.length);
+
     for( var j=0; j<numBlocks; j++ )
     {
         var off = j*this.mTmpBufferSamples;
@@ -100,17 +106,42 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
 
         //dorni
         //Sound buffer : previous function is where this.mData (sound values) are generated
-        for( var i=0; i<4*numSamples; i++ )
+        /*for( var i=0; i<4*numSamples; i++ )
         {
             this.mData[i] = 0.0;//Math.sin(3.14*440.0*i);
-        }
+        }*/
         ///dorni
+
+        //added
+        let wav = new WaveFile();
+        ///added
 
         for( var i=0; i<numSamples; i++ )
         {
             bufL[off+i] = -1.0 + 2.0*(this.mData[4*i+0]+256.0*this.mData[4*i+1])/65535.0;
             bufR[off+i] = -1.0 + 2.0*(this.mData[4*i+2]+256.0*this.mData[4*i+3])/65535.0;
         }
+
+        //added
+        console.log(bufL.length,bufR.length,this.mSampleRate,numSamples,this.mTmpBufferSamples);
+        //console.log(bufL.length,bufR.length);
+        console.log();
+        console.log(bufL);
+
+
+        /*var samplesForWave = [];
+        samplesForWave.push(bufL);
+        samplesForWave.push(bufR);
+        console.log("wav.fromScratch");
+        wav.fromScratch(2, this.mSampleRate, '32f', samplesForWave);*/
+        wav.fromScratch(2, this.mSampleRate, '32f', [bufL,bufR]);
+
+        var blob = new Blob([wav.toBuffer()], {type: "application/octet-stream"});
+        var filenameFull = filename+"_"+j+".wav";
+        console.log(filenameFull);
+        saveAs(blob,filenameFull);
+        ///added
+
     }
 
     this.mRenderer.DetachShader();
@@ -119,13 +150,15 @@ EffectPass.prototype.Generate_Sound = function( wa, d, filename, duration )
 
     //-------------------------------
 
-    if( this.mPlayNode!=null ) { this.mPlayNode.disconnect(); this.mPlayNode.stop(); }
+    /*if( this.mPlayNode!=null ) { this.mPlayNode.disconnect(); this.mPlayNode.stop(); }
 
     this.mPlayNode = wa.createBufferSource();
     this.mPlayNode.buffer = this.mBuffer;
     this.mPlayNode.connect( this.mGainNode );
     this.mPlayNode.state = this.mPlayNode.noteOn;
-    this.mPlayNode.start(0);
+    this.mPlayNode.start(0);*/
+
+
 }
 
 FrameExporter.prototype.genSound = function() {
@@ -151,14 +184,20 @@ FrameExporter.prototype.genSound = function() {
     saveAs(blob,"output2.wav");*/
 
 
-                gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
-                    console.log(pass);
-                    if( pass.mType==="sound" )
-                    {
-                        console.log("found!");
-                        pass.Generate_Sound();
-                    }   
-                });
+    gShaderToy.mEffect.mPasses.forEach(function mPass(pass) {
+        //console.log(pass);
+        if( pass.mType==="sound" )
+        {
+            //console.log("found!");
+
+            //me.mEffect.Paint(ltime/1000.0, dtime/1000.0, me.mFPS.GetFPS(), me.mMouseOriX, me.mMouseOriY, me.mMousePosX, me.mMousePosY, me.mIsPaused );
+            //Effect.prototype.Paint = function(time, dtime, fps, mouseOriX, mouseOriY, mousePosX, mousePosY, isPaused)
+            //let wa = this.mAudioContext;
+            //let da = new Date();
+
+            pass.Generate_Sound(gShaderToy.mEffect.mAudioContext,new Date(),"sound");
+        }   
+    });
 
 };
 
