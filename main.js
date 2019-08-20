@@ -607,7 +607,6 @@ EffectPass.prototype.NewTexture copy
 EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url, secret_key )
 {
     var me = this;
-    console.log(me);
     var renderer = this.mRenderer;
 
     if( renderer==null ) return;
@@ -678,6 +677,7 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
     }*/
     else if( url.mType=="music" || url.mType=="musicstream" )
     {
+        console.log("salut0");
         texture = {};
         texture.mInfo = url;
         texture.globject = null;
@@ -702,6 +702,8 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
                 texture.audio.mForceMuted = true;
             }
             }
+
+        console.log("salut1");
 
         if( wa == null && this.mForceMuted==false )
         {
@@ -760,6 +762,8 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
                texture.audio.hasFalled = true;
         } );
 
+        console.log("salut2");
+
         if( !texture.audio.mForceMuted )
         {
             if(url.mType=="musicstream")
@@ -771,7 +775,7 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
                                                 if( song.streamable==true )
                                                 {
                                                     texture.audio.crossOrigin = '';
-                                                    texture.audio.src = song.stream_url + "?client_id=" + SC.client_id + secret_key;
+                                                    texture.audio.src = song.stream_url + "&client_id=" + SC.client_id;//useless! + secret_key;
                                                     texture.audio.soundcloudInfo = song;
                                                 }
                                                 else
@@ -882,14 +886,14 @@ FrameExporter.prototype.fixSoundCloud = function(){
                     secret_key = 'secret_token=' + secret_key;
                 }
 
-                console.log('soundcloud',input,slot,url,secret_key,secretTrack);
 
                 if(secretTrack)
                 {
+                    console.log('soundcloud',input,slot,url,secret_key,secretTrack);
                     pass.NewTexture_SoundCloudPrivateTrack(
                         gShaderToy.mEffect.mAudioContext,
                         slot,
-                        url,
+                        input.mInfo,
                         secret_key
                     );
                 }
