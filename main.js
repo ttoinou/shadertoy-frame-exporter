@@ -677,7 +677,6 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
     }*/
     else if( url.mType=="music" || url.mType=="musicstream" )
     {
-        console.log("salut0");
         texture = {};
         texture.mInfo = url;
         texture.globject = null;
@@ -702,8 +701,6 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
                 texture.audio.mForceMuted = true;
             }
             }
-
-        console.log("salut1");
 
         if( wa == null && this.mForceMuted==false )
         {
@@ -761,8 +758,6 @@ EffectPass.prototype.NewTexture_SoundCloudPrivateTrack = function( wa, slot, url
                texture.audio.src = str;
                texture.audio.hasFalled = true;
         } );
-
-        console.log("salut2");
 
         if( !texture.audio.mForceMuted )
         {
