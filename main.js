@@ -23,12 +23,29 @@ FrameExporter.prototype.disablePreview = function() {
     this.preview = false;
     this.stopPatch();
 };
+//https://stackoverflow.com/questions/23451726/saving-binary-data-as-file-using-javascript-from-a-browser
+//var sampleBytes = new Int8Array(4096);
+var saveByteArray = (function () {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    return function (data, name) {
+        var blob = new Blob(data, {type: "octet/stream"}),
+            url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = name;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
+}());
+
+//saveByteArray([sampleBytes], 'example.txt');
 
 FrameExporter.prototype.genSound = function() {
     console.log("genSound");
 
     let wav = new WaveFile();
-    const numSamples = 50000;
+    const numSamples = 500;
     var samples = [];
     samples.push([]);
     samples.push([]);
@@ -40,7 +57,8 @@ FrameExporter.prototype.genSound = function() {
     }
 
     wav.fromScratch(2, 48000, '32f', samples);
-    saveAs(wav.toBuffer(),"output.wav");
+    console.log(wav.toBuffer()); // Uint8Array(4044)
+    saveByteArray(wav.toBuffer(),"output.wav");
     //fs.writeFileSync("./output.wav",wav.toBuffer());
 };
 
