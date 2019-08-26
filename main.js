@@ -236,11 +236,11 @@ FrameExporter.prototype.createUi = function() {
     this.addClass(this.controls, 'sfe-controls');
     this.insertAfter(this.controls, this.player);
 
-    var n = 2;
+    var n = 4;
     this.widthInput = this.createInput('width', 'number', 1920*n);
     this.heightInput = this.createInput('height', 'number', 1080*n);
-    this.fpsInput = this.createInput('fps', 'number', 50);
-    this.secondsInput = this.createInput('seconds', 'number',500);
+    this.fpsInput = this.createInput('fps', 'number', 60);
+    this.secondsInput = this.createInput('seconds', 'number',340);
     this.startFrameInput = this.createInput('startFrame', 'number',0);
     this.skipInput = this.createInput('skip', 'number',1);
 
@@ -368,7 +368,7 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(frameNumber, digits);
-    var filename = this.prefix + frameString + '.jpg';
+    var filename = this.prefix + frameString + '.png';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
         setTimeout(done, 300);
