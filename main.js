@@ -10,7 +10,8 @@ FrameExporter.prototype.enablePreview = function() {
 
     // Start frame counter
     this.frameCounter = new FrameCounter(this.fpsInput.value, this.secondsInput.value);
-    this.frameCounter.start();
+    //this.frameCounter.start(false,0);
+    this.frameCounter.start(true,this.settings.startFrame);
 
     this.startPatch();
 
@@ -31,7 +32,8 @@ FrameExporter.prototype.startRecording = function() {
 
     // Start frame counter
     this.frameCounter = new FrameCounter(this.fpsInput.value, this.secondsInput.value);
-    this.frameCounter.start();
+    //this.frameCounter.start(false,0);
+    this.frameCounter.start(true,this.settings.startFrame);
 
     this.startPatch();
 
@@ -198,10 +200,10 @@ var FrameCounter = function(fps, loopSeconds) {
     this.totalFrames = Math.floor(this.fps * this.loopSeconds);
 };
 
-FrameCounter.prototype.start = function() {
+FrameCounter.prototype.start = function(startNotAtZero,startFrame) {
     this.startTime = performance.now();
     this.looped = false;
-    this.frameNumber = 0;
+    this.frameNumber = startNotAtZero ? startFrame : 0;
 };
 
 FrameCounter.prototype.updateTime = function() {
@@ -368,11 +370,11 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(frameNumber, digits);
-    var filename = this.prefix + frameString + '.png';
+    var filename = this.prefix + frameString + '.jpg';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
-        setTimeout(done, 300);
-    },'image/jpeg',0.96);
+        setTimeout(done, 250);
+    },'image/jpeg',0.86);
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
