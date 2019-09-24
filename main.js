@@ -291,7 +291,7 @@ FrameExporter.prototype.settingsChanged = function() {
         height: this.heightInput.value,
         fps: this.fpsInput.value,
         seconds: this.secondsInput.value,
-        startFrame: this.startFrameInput.value,
+        startFrame: parseInt(this.startFrameInput.value),
         skip: this.skipInput.value
     };
 
@@ -337,7 +337,7 @@ FrameExporter.prototype.createInput = function(name, type, value) {
 
 FrameExporter.prototype.saveFrame = function(canvas, done) {
     //console.log(this.settings.startFrame,parseInt(this.settings.startFrame));
-    var startFrame = parseInt(this.settings.startFrame);
+    var startFrame = this.settings.startFrame;
     var ShouldWeSaveFrame = true;
     if(this.frameCounter.frameNumber < startFrame)
     {
