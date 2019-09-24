@@ -218,11 +218,11 @@ FrameCounter.prototype.incrementFrame = function() {
 };
 
 FrameCounter.prototype.loopFrames = function() {
-    if (this.frameNumber > this.totalFrames - 1) {
+    /*if (this.frameNumber > this.totalFrames - 1) {
         this.looped = true;
         this.startTime = performance.now();
         this.frameNumber = 0;
-    }
+    }*/
 };
 
 FrameCounter.prototype.milliseconds = function() {
@@ -370,11 +370,11 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(frameNumber, digits);
-    var filename = this.prefix + frameString + '.jpg';
+    var filename = this.prefix + frameString + '.png';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
         setTimeout(done, 250);
-    },'image/jpeg',0.86);
+    },'image/png',0.86);
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
